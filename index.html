@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memória da História</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tinos:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tinos', serif;
+            background: linear-gradient(to bottom right, #ffffff, #dbeafe);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem 1rem;
+            color: #000000;
+        }
+
+        h1, h2, button {
+            font-family: 'Tinos', serif;
+            font-weight: 700;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+            overflow: hidden;
+            border-width: 2px;
+            border-radius: 0.375rem;
+        }
+
+        .card-back {
+            background-color: #327bf0;
+            border-color: #ffffff;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .card-front {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+            color: #1f2937;
+            transform: rotateY(180deg);
+        }
+
+       .card-front img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover; 
+            border-radius: 0.25rem;
+        }
+        
+       .card-text {
+            font-size: 1.25rem;
+            line-height: 1.3;
+            user-select: none;
+        }
+        
+        @media (min-width: 768px) {
+           .card-text { font-size: 1.5rem; }
+        }
+        @media (min-width: 1024px) {
+           .card-text { font-size: 1.75rem; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <h1 class="text-5xl md:text-6xl font-extrabold text-light-brown-600 mb-6 text-center drop-shadow-lg">
+        História do Trabalho no Brasil
+    </h1>
+
+    <div id="start-screen" class="text-center">
+        <p class="text-xl mb-8 max-w-2xl">
+            Bem-vindo ao Jogo da Memória da História! Vamos testar seus conhecimentos sobre a história do Trabalho no Brasil? Escolha um período, se concentre e mão na massa! 
+        </p>
+        <div class="flex flex-col md:flex-row gap-4 justify-center">
+            <button id="easy-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-300">
+                (1500-1800)
+            </button>
+            <button id="medium-btn" class="bg-green-600 hover:bg-green-700 text-white py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
+                (1888-1945)
+            </button>
+            <button id="hard-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                (1946-2021)
+            </button>
+        </div>
+    </div>
+
+    <div id="game-interface" class="hidden flex flex-col items-center w-full max-w-6xl mx-auto">
+        <div class="text-xl font-semibold mb-4">
+            Movimentos: <span id="moves-count" class="text-blue-700">0</span>
+        </div>
+        <div id="feedback-message" class="text-lg text-gray-600 mb-4 h-6">Encontre os pares!</div>
+
+        <div id="card-grid" class="grid gap-4 w-full">
+           
+        </div>
+
+        <button id="restart-btn" class="mt-8 bg-purple-500 hover:bg-purple-600 text-white py-2 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300">
+            Mudar Nível / Reiniciar
+        </button>
+    </div>
+
+    <div id="game-over-screen" class="hidden text-center bg-white p-8 rounded-xl shadow-2xl">
+        <h2 class="text-4xl font-extrabold text-green-700 mb-4">Parabéns! Jogo Concluído!</h2>
+        <p id="final-moves" class="text-2xl mb-6">Você fez 0 movimentos para encontrar todos os pares.</p>
+        <p class="text-xl mb-6">
+            Esperamos que você tenha memorizado e se divertido!
+        </p>
+        <button id="play-again-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+            Jogar Novamente
+        </button>
+    </div>
+
+    <script>
+        const easyCardsData = [ // 6 pares (12 cartas)
+            { id: 1, value: 'primeiro', content: 'https://i.pinimg.com/originals/9e/74/35/9e743554959b72330f7e2985bf7f2fa3.jpg' },
+            { id: 2, value: 'primeiro', content: 'Período pré-colonial no qual o trabalho era dividido por sexo: as mulheres cuidavam da colheita e do plantio, dos alimentos e das crianças; Homens caçavam, pescavam e guerreavam.' },
+            { id: 3, value: 'segundo', content: 'https://midias-publicas.enciclopedia.itaucultural.org.br/82ra0tv4vgmis374nrk2wgdnlu05' },
+            { id: 4, value: 'segundo', content: 'Chegada dos primeiros escravos com Martin Afonso de Souza' },
+            { id: 5, value: 'terceiro', content: 'https://ied.edu.br/news/22501/image-thumb__22501__scaleByWidth1000/criacaoied_150_years_of_Italian_immigration_in_Brazil_--stylize_e60035ba-ace1-4f85-a624-5bf62c2f6e36%20%281%29.webp' },
+            { id: 6, value: 'terceiro', content: 'Vinda de italianos ao Brasil com fins voltados ao trabalho, visando a substituição da mão de obra escravizada no ramo cdafeeiro.' },
+            { id: 7, value: 'quarto', content: 'https://i.pinimg.com/originals/6e/27/a2/6e27a2e843b6dafb527659ab8f734571.jpg' },
+            { id: 8, value: 'quarto', content: 'Exploração do Pau-Brasil com mão de obra indígena, principal atividade economica pré-colonial.' },
+            { id: 9, value: 'quinto', content: 'https://www.infoescola.com/wp-content/uploads/2010/09/economia-acucareira.jpg' },
+            { id: 10, value: 'quinto', content: 'Trabalhadores escravizados submetidos a sociedade açucareira durante o Brasil colonial, sistema chefiado por senhores de engenho.' },
+            { id: 11, value: 'sexto', content: 'https://ogimg.infoglobo.com.br/in/25065809-988-cf1/FT1086A/baixa.jpg'},
+            { id: 12, value: 'sexto', content: 'Período da história do Brasil, marcado pela descoberta, exploração e exportação do ouro, especialmente nas regiões de Minas Gerais, Goiás e Mato Grosso. 1697' },
+        ];
+
+
+        const mediumCardsData = [ // 7 pares (14 cartas) - completamente diferentes das fáceis
+            { id: 13, value: 'setimo', content: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Biard_Abolition_de_l%27esclavage_1849.jpg/1200px-Biard_Abolition_de_l%27esclavage_1849.jpg' },
+            { id: 14, value: 'setimo', content: 'Marco na luta pelos direitos humanos e pela igualdade no Brasil - abolição da escravidão.' },
+            { id: 15, value: 'oitavo', content: 'https://aventurasnahistoria.com.br/media/_versions/grevecapa5942_widelg.jpg' },
+            { id: 16, value: 'oitavo', content: 'Greve geral de 1917, movimento operário que visava o fim da exploração infantil nas fábricas, a diminuição da jornada e a elaboração de direitos trabalhistas.' },
+            { id: 17, value: 'nono', content: 'https://tse4.mm.bing.net/th/id/OIP.B-gUfFdboTM5a4Z6h_eJpQHaJl?pid=Api&P=0&h=180' },
+            { id: 18, value: 'nono', content: 'Presidente voltado às políticas populista e trabalhista, como, por exemplo, a criação do salário mínimo (1940) e a Consolidação das Leis do Trabalho (CLT) em 1943.' },
+            { id: 19, value: 'decimo', content: 'https://conhecimentocientifico.r7.com/wp-content/uploads/2019/08/politica-cafe-com-leite-entenda-o-toma-la-da-ca-da-republica-velha-1024x536.png.webp' },
+            { id: 20, value: 'decimo', content: 'Trabalhadores durante a chamada Política do Café com Leite, na qual os estados de São Paulo e Minas Gerais intercalavam o poder no país.' },
+            { id: 21, value: 'decimo_primeiro', content: 'https://www.cafehistoria.com.br/wp-content/uploads/2025/04/seringueiros-segunda-guerra-768x577.webp' },
+            { id: 22, value: 'decimo_primeiro', content: 'Grupo de trabalhadores que se voluntariou para o trabalho na Amazônia, na extração de látex, durante a Segunda Guerra Mundial.' },
+            { id: 23, value: 'decimo_segundo', content: 'https://www.iea.usp.br/imagens/operarios-tarsila-do-amaral/image' },
+            { id: 24, value: 'decimo_segundo', content: 'Obra representativa da nova classe emergente no Brasil na década de 1920: os trabalhadores urbanos.' },
+            { id: 25, value: 'decimo_terceiro', content: 'https://i0.wp.com/www.muitopior.com.br/wp-content/uploads/2019/07/fordlandia.jpg?resize=768%2C461&ssl=1' },
+            { id: 26, value: 'decimo_terceiro', content: 'Fordlândia, 1945: cidade industrial criada por Henry Ford no Pará em 1927, reflexo da exploração da mão de obra latina em detrimento do setor automobilístico externo.' },
+        ];
+
+        const hardCardsData = [ // 8 pares (16 cartas) - completamente diferentes das fáceis e médias
+            { id: 27, value: 'decimo_quarto', content: 'https://conhecimentocientifico.r7.com/wp-content/uploads/2023/04/ligas-camponesas-1.jpeg.webp'},
+            { id: 28, value: 'decimo_quarto', content: 'Ligas Camponesas, conjunto de lutas pela reforma agrária no Brasil iniciado oficialmente no final da década de 1950 que persiste até hoje.' },
+            { id: 29, value: 'decimo_quinto', content: 'https://assets-global.website-files.com/60ff690cd7b0537edb99a29a/61fc164d318146c5d2cbff12_pr%C3%A9dios-em-constru%C3%A7%C3%A3o-em-bras%C3%ADlia.jpg' },
+            { id: 30, value: 'decimo_quinto', content: 'Construção da nova capital brasileira durante a regência de JK, a qual dependeu da mão de obra majoritariamente Nortista e Nordestina e sua eventual fixação em cidades-satélites precárias.' },
+            { id: 31, value: 'decimo_sexto', content: 'https://www.todoestudo.com.br/wp-content/uploads/2017/03/passeata-dos-cem-mil.jpg' },
+            { id: 32, value: 'decimo_sexto', content: 'Passeata realizada por milhares de estudantes e trabalhadores demandando o fim da ditadura militar, em 26 de junho de 1968.' },
+            { id: 33, value: 'decimo_setimo', content: 'http://2.bp.blogspot.com/-Bh4ibTXAaNg/UUzWwc4HtwI/AAAAAAAABLY/1jSuAKgPqg0/w1200-h630-p-nu/marighella-PBRf.jpg' },
+            { id: 34, value: 'decimo_setimo', content: 'Revolucionário líder da Ação Libertadora Nacional (ALN), movimento de resistência armada à ditadura.' },
+            { id: 35, value: 'decimo_oitavo', content: 'https://ogimg.infoglobo.com.br/in/19286494-68a-50d/FT1086A/2016-894126788-20160304-203623.jpg_20160307.jpg' },
+            { id: 36, value: 'decimo_oitavo', content: 'Greve dos metalúrgicos de 1979. Insatisfeitos, cerca de 200 mil trabalhadores buscavam reajuste salarial além de melhorias nas condições de trabalho em meio à ditadura militar.' },
+            { id: 37, value: 'decimo_nono', content: 'https://lereaprender.com.br/wp-content/uploads/2019/11/jose-sarney.jpg' },
+            { id: 38, value: 'decimo_nono', content: 'O primeiro presidente eleito diretamente no Brasil. A criação da Constituição Federal é um dos marcos de seu governo.' },
+            { id: 39, value: 'vigesimo', content: 'https://ogimg.infoglobo.com.br/in/24942775-879-340/FT1086A/Santo-andre.jpg' },
+            { id: 40, value: 'vigesimo', content: 'Devido ao vírus da COVID-19 o Brasil e o mundo tiveram que se adaptar, com a maioria dos trabalhos sendo feito Home Office.' },
+            { id: 41, value: 'vigesimo_primeiro', content: 'https://www.esquerdadiario.com.br/local/cache-vignettes/L720xH489/whatsapp_image_2024-11-15_at_21.06_06-28b38.jpg?1743544919' },
+            { id: 42, value: 'vigesimo_primeiro', content: 'Marcha pelo fim da escala 6x1, realizada em novembro de 2024.' },
+        ];
+
+        let gameCards = [];
+        let flippedCards = [];
+        let matchedCards = [];
+        let moves = 0;
+        let gameStarted = false;
+        let gameOver = false;
+        let level = null;
+        let canClick = true; 
+
+        const startScreen = document.getElementById('start-screen');
+        const gameInterface = document.getElementById('game-interface');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const easyBtn = document.getElementById('easy-btn');
+        const mediumBtn = document.getElementById('medium-btn');
+        const hardBtn = document.getElementById('hard-btn');
+        const movesCount = document.getElementById('moves-count');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const cardGrid = document.getElementById('card-grid');
+        const restartBtn = document.getElementById('restart-btn');
+        const finalMoves = document.getElementById('final-moves');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function updateMovesDisplay() {
+            movesCount.textContent = moves;
+        }
+
+        function updateFeedbackMessage(message) {
+            feedbackMessage.textContent = message;
+        }
+        
+        function initializeGame(selectedLevel) {
+            level = selectedLevel;
+            let cardsToUse = []; // Variável para armazenar o conjunto de cartas do nível atual
+            let gridClass;
+
+            switch (selectedLevel) {
+                case 'easy':
+                    cardsToUse = easyCardsData; // Usa apenas as cartas definidas para o nível Fácil
+                    gridClass = 'grid-cols-3'; // 3 colunas de cartas
+                    break;
+                case 'medium':
+                    cardsToUse = mediumCardsData; // Usa apenas as cartas definidas para o nível Intermediário
+                    gridClass = 'grid-cols-4'; // 4 colunas de cartas
+                    break;
+                case 'hard':
+                    cardsToUse = hardCardsData; // Usa apenas as cartas definidas para o nível Difícil
+                    gridClass = 'grid-cols-4'; // 4 colunas de cartas (para serem bem grandes)
+                    break;
+                default:
+                    cardsToUse = easyCardsData; // Padrão
+                    gridClass = 'grid-cols-3';
+            }
+
+            cardGrid.className = `grid ${gridClass} gap-4 w-full`;
+
+            // Embaralha e prepara as cartas do conjunto escolhido
+            gameCards = shuffleArray(cardsToUse.map(card => ({
+                ...card,
+                isFlipped: false,
+                isMatched: false,
+                uniqueId: `${card.id}-${Math.random()}`
+            })));
+
+            flippedCards = [];
+            matchedCards = [];
+            moves = 0;
+            gameStarted = true;
+            gameOver = false;
+            canClick = true;
+
+            updateMovesDisplay();
+            updateFeedbackMessage('Encontre os pares!');
+            renderCards();
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            gameInterface.classList.remove('hidden');
+        }
+        
+        function renderCards() {
+            cardGrid.innerHTML = '';
+            gameCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card', 'relative', 'w-full', 'aspect-square', 'cursor-pointer', 'transition-transform', 'duration-300');
+                cardElement.style.perspective = '1000px';
+
+                const cardInner = document.createElement('div');
+                cardInner.classList.add('card-inner');
+
+                if (card.isFlipped || card.isMatched) {
+                    cardElement.classList.add('flipped');
+                }
+                
+                if (card.isMatched) {
+                    cardElement.classList.add('opacity-50', 'scale-95');
+                } else {
+                    cardElement.classList.add('hover:scale-105');
+                }
+
+                cardElement.dataset.id = card.uniqueId;
+                cardElement.dataset.value = card.value;
+                
+                cardInner.innerHTML = `
+                    <div class="card-face card-back">
+                        <span class="select-none">?</span>
+                    </div>
+                    <div class="card-face card-front">
+                        ${card.content.startsWith('http') ?
+                            `<img src="${card.content}" alt="Evento Histórico" class="w-full h-full object-cover rounded-md" onerror="this.onerror=null; this.src='https://placehold.co/400x400/AAAAAA/000000?text=Erro+Imagem';">`
+                            :
+                            `<p class="card-text text-gray-900">${card.content}</p>`
+                        }
+                    </div>
+                `;
+                
+                cardElement.appendChild(cardInner);
+                cardElement.addEventListener('click', () => handleCardClick(card.uniqueId));
+                cardGrid.appendChild(cardElement);
+            });
+        }
+        
+        function handleCardClick(clickedUniqueId) {
+            if (!gameStarted || gameOver || !canClick) return;
+
+            const clickedCardIndex = gameCards.findIndex(card => card.uniqueId === clickedUniqueId);
+            const clickedCard = gameCards[clickedCardIndex];
+
+            if (clickedCard.isMatched || clickedCard.isFlipped || flippedCards.length === 2) {
+                return;
+            }
+
+            gameCards[clickedCardIndex].isFlipped = true;
+            renderCards();
+
+            flippedCards.push(clickedUniqueId);
+
+            if (flippedCards.length === 2) {
+                canClick = false;
+                const [firstCardUniqueId, secondCardUniqueId] = flippedCards;
+                const firstCard = gameCards.find(card => card.uniqueId === firstCardUniqueId);
+                const secondCard = gameCards.find(card => card.uniqueId === secondCardUniqueId);
+
+                moves++;
+                updateMovesDisplay();
+
+                if (firstCard.value === secondCard.value) {
+                    firstCard.isMatched = true;
+                    secondCard.isMatched = true;
+                    matchedCards.push(firstCardUniqueId, secondCardUniqueId);
+                    flippedCards = [];
+                    updateFeedbackMessage('Acerto! Bom trabalho!');
+                    renderCards();
+                    canClick = true;
+
+                    if (matchedCards.length === gameCards.length) {
+                        gameOver = true;
+                        setTimeout(() => {
+                            updateFeedbackMessage('Parabéns! Você encontrou todos os pares!');
+                            finalMoves.textContent = `Você fez ${moves} movimentos para encontrar todos os pares.`;
+                            gameInterface.classList.add('hidden');
+                            gameOverScreen.classList.remove('hidden');
+                        }, 500);
+                    }
+                } else {
+                    updateFeedbackMessage('Quase lá! Tente novamente.');
+                    setTimeout(() => {
+                        firstCard.isFlipped = false;
+                        secondCard.isFlipped = false;
+                        flippedCards = [];
+                        renderCards();
+                        canClick = true;
+                    }, 1200);
+                }
+            }
+        }
+        
+        easyBtn.addEventListener('click', () => initializeGame('easy'));
+        mediumBtn.addEventListener('click', () => initializeGame('medium'));
+        hardBtn.addEventListener('click', () => initializeGame('hard'));
+        restartBtn.addEventListener('click', () => {
+            gameStarted = false;
+            startScreen.classList.remove('hidden');
+            gameInterface.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+        });
+        playAgainBtn.addEventListener('click', () => {
+            gameStarted = false;
+            startScreen.classList.remove('hidden');
+            gameInterface.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+        });
+
+        window.onload = () => {
+            startScreen.classList.remove('hidden');
+            gameInterface.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+        };
+    </script>
+</scripy>
