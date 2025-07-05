@@ -137,7 +137,7 @@
     </div>
 
     <script>
-        const easyCardsData = [ // 6 pares (12 cartas)
+        const easyCardsData = [
             { id: 1, value: 'primeiro', content: 'https://i.pinimg.com/originals/9e/74/35/9e743554959b72330f7e2985bf7f2fa3.jpg' },
             { id: 2, value: 'primeiro', content: 'Período pré-colonial no qual o trabalho era dividido por sexo: as mulheres cuidavam da colheita e do plantio, dos alimentos e das crianças; Homens caçavam, pescavam e guerreavam.' },
             { id: 3, value: 'segundo', content: 'https://midias-publicas.enciclopedia.itaucultural.org.br/82ra0tv4vgmis374nrk2wgdnlu05' },
@@ -153,7 +153,7 @@
         ];
 
 
-        const mediumCardsData = [ // 7 pares (14 cartas) - completamente diferentes das fáceis
+        const mediumCardsData = [
             { id: 13, value: 'setimo', content: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Biard_Abolition_de_l%27esclavage_1849.jpg/1200px-Biard_Abolition_de_l%27esclavage_1849.jpg' },
             { id: 14, value: 'setimo', content: 'Marco na luta pelos direitos humanos e pela igualdade no Brasil - abolição da escravidão.' },
             { id: 15, value: 'oitavo', content: 'https://aventurasnahistoria.com.br/media/_versions/grevecapa5942_widelg.jpg' },
@@ -170,7 +170,7 @@
             { id: 26, value: 'decimo_terceiro', content: 'Fordlândia, 1945: cidade industrial criada por Henry Ford no Pará em 1927, reflexo da exploração da mão de obra latina em detrimento do setor automobilístico externo.' },
         ];
 
-        const hardCardsData = [ // 8 pares (16 cartas) - completamente diferentes das fáceis e médias
+        const hardCardsData = [
             { id: 27, value: 'decimo_quarto', content: 'https://conhecimentocientifico.r7.com/wp-content/uploads/2023/04/ligas-camponesas-1.jpeg.webp'},
             { id: 28, value: 'decimo_quarto', content: 'Ligas Camponesas, conjunto de lutas pela reforma agrária no Brasil iniciado oficialmente no final da década de 1950 que persiste até hoje.' },
             { id: 29, value: 'decimo_quinto', content: 'https://assets-global.website-files.com/60ff690cd7b0537edb99a29a/61fc164d318146c5d2cbff12_pr%C3%A9dios-em-constru%C3%A7%C3%A3o-em-bras%C3%ADlia.jpg' },
@@ -229,30 +229,30 @@
         
         function initializeGame(selectedLevel) {
             level = selectedLevel;
-            let cardsToUse = []; // Variável para armazenar o conjunto de cartas do nível atual
+            let cardsToUse = []; 
             let gridClass;
 
             switch (selectedLevel) {
                 case 'easy':
-                    cardsToUse = easyCardsData; // Usa apenas as cartas definidas para o nível Fácil
-                    gridClass = 'grid-cols-3'; // 3 colunas de cartas
+                    cardsToUse = easyCardsData;
+                    gridClass = 'grid-cols-3'; 
                     break;
                 case 'medium':
-                    cardsToUse = mediumCardsData; // Usa apenas as cartas definidas para o nível Intermediário
-                    gridClass = 'grid-cols-4'; // 4 colunas de cartas
+                    cardsToUse = mediumCardsData;
+                    gridClass = 'grid-cols-4'; 
                     break;
                 case 'hard':
-                    cardsToUse = hardCardsData; // Usa apenas as cartas definidas para o nível Difícil
-                    gridClass = 'grid-cols-4'; // 4 colunas de cartas (para serem bem grandes)
+                    cardsToUse = hardCardsData;
+                    gridClass = 'grid-cols-4'; 
                     break;
                 default:
-                    cardsToUse = easyCardsData; // Padrão
+                    cardsToUse = easyCardsData; 
                     gridClass = 'grid-cols-3';
             }
 
             cardGrid.className = `grid ${gridClass} gap-4 w-full`;
 
-            // Embaralha e prepara as cartas do conjunto escolhido
+            
             gameCards = shuffleArray(cardsToUse.map(card => ({
                 ...card,
                 isFlipped: false,
